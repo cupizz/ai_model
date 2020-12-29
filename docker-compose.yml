@@ -1,0 +1,38 @@
+version: '3.7'
+
+services:
+  redis:
+    image: 'redis:latest'
+    ports:
+      - "6379:6379"
+    volumes:
+      - "./data/redis:/data"
+  mongo:
+    image: mongo:latest
+    environment:
+      - MONGO_DATA_DIR=/data/db
+      - MONGO_LOG_DIR=/dev/null
+    ports:
+      - "27017:27017"
+    volumes:
+      - ./data/db:/data/db
+  ai_model:
+    build:
+      context: .
+      dockerfile: dockerfile
+    container_name: data_index
+    image: data_index:latest
+    volumes:
+      - ./:/app
+    ports:
+      - '9000:80'
+    tty: true
+    environment:
+      - DOTENV_PATH_FOR_DYNACONF="/app/.env"
+      - DOTENV_PATH="/app/.env"
+      - ENV=development
+    depends_on:
+      - redis
+      - mongo
+    restart: on-failure
+    command: /start-reload.sh

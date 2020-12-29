@@ -1,0 +1,40 @@
+[default]
+ENV = 'development'
+PROJECT_ROOT = "/app"
+DATA_ROOT = "/app/data"
+APP_NAME = "ai_model"
+TIME_ZONE = "UTC"
+LOGGER_NAME = "service_account"
+DEBUG = true
+LOG_LEVEL = "DEBUG"
+
+[development.REDIS]
+HOST = "redis"
+PORT = 6379
+USERNAME = ''
+PASSWORD = ''
+
+# --------------------------- DATABASE --------------------------- #
+[default.MONGODB_SETTINGS]
+# mongo db settings are on lowercase
+DB = "database-1"
+HOST = "mongo"
+PORT = 27017
+USERNAME = ""
+PASSWORD = ""
+MONGO_MULTI_HOST = false
+
+[default.CELERY]
+RESULT_BACKEND = 'redis://redis:6379/8'
+BROKER_URL = 'redis://redis:6379/9'
+REDIS_URL = 'redis://redis:6379/9'
+REDBEAT_REDIS_URL = 'redis://redis:6379/9'
+TASK_SERIALIZER = 'json'
+RESULT_SERIALIZER = 'json'
+ACCEPT_CONTENT = ['json', 'application/text']
+TASK_REJECT_ON_WORKER_LOST = true
+TASK_ACKS_LATE = true
+# In development, all tasks will be executed locally by blocking until the task returns
+TASK_ALWAYS_EAGER = false
+WORKER_PREFETCH_MULTIPLIER = 1
+TASK_SOFT_TIME_LIMIT = 3600
