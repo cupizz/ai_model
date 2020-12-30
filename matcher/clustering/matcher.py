@@ -1,3 +1,4 @@
+from operator import itemgetter
 from typing import List
 
 import pandas as pd
@@ -316,30 +317,27 @@ def top_similar(df, cluster, vect_df, input_vect, x_user, y_user, min_age_prefer
     top_sim = corr.sort_values(ascending=False)[1:]
     # The Top Profiles
     filter_profile = df.loc[top_sim.index]
+    if len(list_exclude_id) > 0:
+        filter_profile = filter_profile[~filter_profile['id'].isin(list_exclude_id)]
 
     a = (x_user, y_user)
     list_x = filter_profile['x'].tolist()
     list_y = filter_profile['y'].tolist()
-    list_idx = []
+    list_index = filter_profile.index.values.tolist()
+
+    list_idx_filter_distance = []
     for idx, (x, y) in enumerate(zip(list_x, list_y)):
         b = (x, y)
         dst = distance.euclidean(a, b)
         if dst <= distance_prefer:
-            list_idx.append(idx)
-    print(len(filter_profile.index.tolist()))
-    filter_profile = filter_profile[filter_profile.index.isin(list_idx)]
-    print(len(filter_profile.index.tolist()))
+            list_idx_filter_distance.append([list_index[idx], dst])
+    list_idx_filter_distance = sorted(list_idx_filter_distance, key=itemgetter(1))
+    list_index_sorted = [x[0] for x in list_idx_filter_distance]
+    filter_profile = filter_profile[filter_profile.index.isin(list_index_sorted)]
+    filter_profile = filter_profile.reindex(list_index_sorted)
     filter_profile = filter_profile[filter_profile['age'].between(min_age_prefer, max_age_prefer)]
-    print(len(filter_profile.index.tolist()))
-    filter_profile = filter_profile[filter_profile['age'].between(min_age_prefer, max_age_prefer)]
-    print(len(filter_profile.index.tolist()))
     filter_profile = filter_profile[filter_profile['height'].between(min_height_prefer, max_height_prefer)]
-    print(len(filter_profile.index.tolist()))
-
     filter_profile = filter_profile[filter_profile['gender'].isin(gender_prefer)]
-
-    if len(list_exclude_id) > 0:
-        filter_profile = filter_profile[~filter_profile['id'].isin(list_exclude_id)]
 
     # Creating a DF with the Top most similar profiles
     if limit > 0:
