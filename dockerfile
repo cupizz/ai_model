@@ -1,17 +1,10 @@
-FROM tiangolo/uvicorn-gunicorn-fastapi:python3.7
-RUN apt-get -qq update \
-    && apt-get -y install openssh-server
-RUN mkdir -p /webapp \
-    && mkdir -p ~/.ssh && mkdir /var/run/sshd \
-    && echo 'root:docker' | chpasswd \
-    && echo "export VISIBLE=now" >> /etc/profile
-
-# SSH login fix
-RUN sed -i 's/PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config \
-    && sed -i 's/\#PermitRootLogin yes/PermitRootLogin yes/' /etc/ssh/sshd_config \
-    && sed -i '/\#AuthorizedKeysFile/c\AuthorizedKeysFile     .ssh/authorized_keys/' /etc/ssh/sshd_config \
-    && sed 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' -i /etc/pam.d/sshd
-
+FROM python:3.7
+RUN apt-get -qq update && pip install uvicorn gunicorn && mkdir -p /app
+COPY ./start.sh ./gunicorn_conf.py /
 COPY ./requirements.txt /app
-RUN pip install -r requirements.txt
+WORKDIR /app
+ENV PYTHONPATH=/app
+RUN chmod +x /start.sh && pip install -r requirements.txt
 COPY . /app
+EXPOSE 80
+CMD ["/start.sh"]

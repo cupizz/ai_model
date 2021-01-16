@@ -39,15 +39,15 @@ class RecommendInput(BaseModel):
 
 
 def recommend_similar_profile(body: RecommendInput):
-    with open("profiles.pkl", 'rb') as dffp:
+    with open(r"files/profiles.pkl", 'rb') as dffp:
         df = pickle.load(dffp)
 
-    with open("vectorized.pkl", 'rb') as vect_dffp:
+    with open("files/vectorized.pkl", 'rb') as vect_dffp:
         vect_df = pickle.load(vect_dffp)
     new_profile = create_new_profile(df, body.id, body.nickname, body.introduction, body.age, body.gender,
                                      body.height, body.x, body.y, body.smoking, body.drinking, body.your_kids,
                                      body.religious, body.hobbies)
-    model = joblib.load(r"classification_model.joblib")
+    model = joblib.load(r"files/classification_model.joblib")
     list_exclude_id = body.list_exclude_id
     list_exclude_id.append(body.id)
     return get_similar_profile_refined(vectorizer, df, vect_df, new_profile, model, body.x, body.y,
