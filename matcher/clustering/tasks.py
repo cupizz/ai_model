@@ -1,4 +1,6 @@
+import os
 import pickle
+import threading
 
 import joblib
 import pandas as pd
@@ -23,30 +25,44 @@ def train_model_clustering(link_url):
         data_frame.dropna(inplace=True)
         data_frame.reset_index(drop=True, inplace=True)
         print(data_frame.head())
+        if not os.path.exists(r'files'):
+            os.makedirs(r'files')
         with open(r"files/profiles.pkl", 'wb') as wb:
-            data_frame.to_csv(r"profiles.csv", encoding='utf-8')
+            data_frame.to_csv(r"files/profiles.csv", encoding='utf-8')
             pickle.dump(data_frame, wb)
         cluster_df, vect_df = finding_number_of_clusters_refined_data(vectorizer, data_frame,
                                                                       fn_algorithm_clustering=k_means_clustering)
 
         with open(r"files/cluster.pkl", 'wb') as wb:
             pickle.dump(cluster_df, wb)
-            cluster_df.to_csv(r'cluster.csv')
+            cluster_df.to_csv(r'files/cluster.csv')
 
         with open(r"files/vectorized.pkl", 'wb') as wb:
             pickle.dump(vect_df, wb)
-            vect_df.to_csv(r'vectorized.csv')
+            vect_df.to_csv(r'files/vectorized.csv')
         best_model, best_name_model, best_score = find_best_model_classification_of_new_profile(vect_df)
         # Saving the Classification Model For future use
-        joblib.dump(best_model, "classification_model.joblib")
+        joblib.dump(best_model, "files/classification_model.joblib")
     else:
         response.raise_for_status()
 
 
 @celery_app.task(name="clustering")
-def train_model(*args, **kwargs) -> str:
+def train_model_background_task(*args, **kwargs) -> str:
     try:
         train_model_clustering(*args, **kwargs)
+        return "success"
+    except SoftTimeLimitExceeded as ex:
+        logger.warning("except SoftTimeLimitExceeded task feeds.googleads.download.update_campaigns")
+        return "failed"
+
+
+def train_model_thread(*args, **kwargs) -> str:
+    try:
+        th = threading.Thread(target=train_model_clustering, args=args, kwargs=kwargs)
+        th.start()
+        # Wait for thread to finish
+        # th.join()
         return "success"
     except SoftTimeLimitExceeded as ex:
         logger.warning("except SoftTimeLimitExceeded task feeds.googleads.download.update_campaigns")

@@ -1,5 +1,5 @@
 import pickle
-from typing import List
+from typing import List, Optional
 
 import joblib
 from fastapi import APIRouter
@@ -35,7 +35,7 @@ class RecommendInput(BaseModel):
     max_height_prefer: int
     gender_prefer: List[int]
     distance_prefer: int
-    limit: int
+    limit: Optional[int] = None
 
 
 def recommend_similar_profile(body: RecommendInput):

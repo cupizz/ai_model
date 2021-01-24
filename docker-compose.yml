@@ -19,9 +19,9 @@ services:
   ai_model:
     image: doublefeel/ai_matcher:latest
     volumes:
-      - ./:/app
+      - ./files:/app/files
     ports:
-      - '9000:80'
+      - '80:80'
     tty: true
     environment:
       - DOTENV_PATH_FOR_DYNACONF="/app/.env"

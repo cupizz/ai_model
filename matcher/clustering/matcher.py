@@ -296,13 +296,15 @@ def cluster_eval(y, x):
 
 
 def top_similar(df, cluster, vect_df, input_vect, x_user, y_user, min_age_prefer: int, max_age_prefer: int,
-                min_height_prefer: int, max_height_prefer: int, gender_prefer: [], distance_prefer, limit=50,
+                min_height_prefer: int, max_height_prefer: int, gender_prefer: [], distance_prefer,
+                limit=None,
                 list_exclude_id=[]):
     """
     Returns the DataFrame containing the top 10 similar profiles to the new data
     """
-    # Filtering out the clustered DF
-    des_cluster = vect_df[vect_df['Cluster #'] == cluster[0]].drop('Cluster #', 1)
+    # # Filtering out the clustered DF
+    # des_cluster = vect_df[vect_df['Cluster #'] == cluster[0]].drop('Cluster #', 1)
+    des_cluster = vect_df.drop('Cluster #', 1)
 
     # Appending the new profile data
     des_cluster = des_cluster.append(input_vect, sort=False)
@@ -340,7 +342,7 @@ def top_similar(df, cluster, vect_df, input_vect, x_user, y_user, min_age_prefer
     filter_profile = filter_profile[filter_profile['gender'].isin(gender_prefer)]
 
     # Creating a DF with the Top most similar profiles
-    if limit > 0:
+    if limit and limit > 0:
         top_profile = filter_profile[0:limit]
     else:
         top_profile = filter_profile
@@ -431,7 +433,7 @@ def tokenize(text):
 
 def get_similar_profile_refined(Vectorizer, data_frame, vect_df, new_profile, model, x_user, y_user,
                                 min_age_prefer: int, max_age_prefer: int, min_height_prefer: int,
-                                max_height_prefer: int, gender_prefer, distance_prefer, limit=50,
+                                max_height_prefer: int, gender_prefer, distance_prefer, limit=None,
                                 list_exclude_id=[]):
     df = data_frame.filter(
         ['introduction', 'age', 'gender', 'hobbies', 'height', 'x', 'y', 'smoking', 'drinking', 'yourKids',
