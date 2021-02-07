@@ -1,8 +1,7 @@
 import os
-import pickle
 import threading
+import time
 
-import joblib
 import pandas as pd
 import requests
 from celery.exceptions import SoftTimeLimitExceeded
@@ -10,6 +9,7 @@ from celery.exceptions import SoftTimeLimitExceeded
 from app.logger import logger
 from matcher.clustering.matcher import finding_number_of_clusters_refined_data, k_means_clustering, \
     find_best_model_classification_of_new_profile
+from matcher.clustering.model_recommend import model_singleton
 from matcher.clustering.vectorizer import vectorizer
 from worker.celery_app import celery_app
 
@@ -17,6 +17,7 @@ default_url = 'https://cupizz.cf/export/users?authorization=eyJhbGciOiJIUzI1NiIs
 
 
 def train_model_clustering(link_url):
+    start_time = time.time()
     url = (link_url, default_url)[link_url is None]
     response = requests.get(url)
     if response.ok:
@@ -24,25 +25,37 @@ def train_model_clustering(link_url):
         data_frame = pd.read_json(response.content)
         data_frame.dropna(inplace=True)
         data_frame.reset_index(drop=True, inplace=True)
+        print(data_frame.shape)
         print(data_frame.head())
         if not os.path.exists(r'files'):
             os.makedirs(r'files')
-        with open(r"files/profiles.pkl", 'wb') as wb:
-            data_frame.to_csv(r"files/profiles.csv", encoding='utf-8')
-            pickle.dump(data_frame, wb)
+
+        # with open(r"files/profiles.pkl", 'wb') as wb:
+        #     data_frame.to_csv(r"files/profiles.csv", encoding='utf-8')
+        #     pickle.dump(data_frame, wb)
         cluster_df, vect_df = finding_number_of_clusters_refined_data(vectorizer, data_frame,
                                                                       fn_algorithm_clustering=k_means_clustering)
 
-        with open(r"files/cluster.pkl", 'wb') as wb:
-            pickle.dump(cluster_df, wb)
-            cluster_df.to_csv(r'files/cluster.csv')
+        # with open(r"files/cluster.pkl", 'wb') as wb:
+        #     pickle.dump(cluster_df, wb)
+        #     cluster_df.to_csv(r'files/cluster.csv')
 
-        with open(r"files/vectorized.pkl", 'wb') as wb:
-            pickle.dump(vect_df, wb)
-            vect_df.to_csv(r'files/vectorized.csv')
+        # with open(r"files/vectorized.pkl", 'wb') as wb:
+        #     pickle.dump(vect_df, wb)
+        #     vect_df.to_csv(r'files/vectorized.csv')
+
         best_model, best_name_model, best_score = find_best_model_classification_of_new_profile(vect_df)
+
         # Saving the Classification Model For future use
-        joblib.dump(best_model, "files/classification_model.joblib")
+        # joblib.dump(best_model, "files/classification_model.joblib")
+
+        model_singleton.set_df(data_frame)
+        model_singleton.set_cluster_df(cluster_df)
+        model_singleton.set_vect_df(vect_df)
+        model_singleton.set_model(best_model)
+
+        print("--- %s seconds to run train model ---" % (time.time() - start_time))
+
     else:
         response.raise_for_status()
 

@@ -1,5 +1,6 @@
 import pandas as pd
 import uvicorn
+from starlette.middleware.cors import CORSMiddleware
 
 from app.app_factory import create_application
 from app.logger import logger
@@ -16,6 +17,16 @@ app = create_application(settings)
 app.include_router(train_router, tags=['clustering'], prefix='/train')
 
 app.include_router(recommend_router, tags=['recommend'], prefix='/recommend')
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_credentials=False,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"]
+)
+
+app.router.redirect_slashes = False
 
 
 @app.on_event("startup")

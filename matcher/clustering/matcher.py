@@ -471,5 +471,5 @@ def get_similar_profile_refined(Vectorizer, data_frame, vect_df, new_profile, mo
                                  max_age_prefer,
                                  min_height_prefer, max_height_prefer, gender_prefer, distance_prefer,
                                  limit, list_exclude_id)
-
+    print(f'len top_similar_df: {len(top_similar_df)}')
     return top_similar_df
