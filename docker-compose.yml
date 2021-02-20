@@ -16,10 +16,26 @@ services:
       - "27017:27017"
     volumes:
       - ./data/db:/data/db
+  #  ai_model:
+  #    image: doublefeel/ai_matcher:latest
+  #    volumes:
+  #      - ./files:/app/files
+  #    ports:
+  #      - '80:80'
+  #    tty: true
+  #    environment:
+  #      - DOTENV_PATH_FOR_DYNACONF="/app/.env"
+  #      - DOTENV_PATH="/app/.env"
+  #      - ENV=development
+  #    depends_on:
+  #      - redis
+  #      - mongo
   ai_model:
-    image: doublefeel/ai_matcher:latest
+    build:
+      context: .
+      dockerfile: dockerfile.dev
     volumes:
-      - ./files:/app/files
+      - ./:/app
     ports:
       - '80:80'
     tty: true
@@ -30,3 +46,4 @@ services:
     depends_on:
       - redis
       - mongo
+    command: /start-reload.sh
